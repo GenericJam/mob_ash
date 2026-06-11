@@ -1,7 +1,7 @@
 # Agent instructions
 
-This repo is a mob plugin extracted from mob core (Wave 2 of the plugin
-epic). Conventions are mob's — read `~/code/mob/AGENTS.md` +
+This repo is a NET-NEW mob plugin (not a core extraction): the spec-v2
+generated-screens lane, with Ash as the resource layer. Conventions are mob's — read `~/code/mob/AGENTS.md` +
 `~/code/mob/CLAUDE.md` first, and `~/code/mob/MOB_PLUGINS.md` for the
 manifest schema.
 
