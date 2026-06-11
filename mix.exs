@@ -1,0 +1,52 @@
+defmodule MobAsh.MixProject do
+  use Mix.Project
+
+  @source_url "https://github.com/GenericJam/mob_ash"
+
+  def project do
+    [
+      app: :mob_ash,
+      version: "0.1.0",
+      elixir: "~> 1.17",
+      elixirc_paths: elixirc_paths(Mix.env()),
+      deps: deps(),
+      description:
+        "Resource-driven Mob screens from Ash: declare Ash resources, get list/detail/create screens on device",
+      package: package(),
+      source_url: @source_url
+    ]
+  end
+
+  def application do
+    [extra_applications: [:logger]]
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp deps do
+    # Local :mob path dep while the plugin system is dogfooded; switch to the
+    # Hex constraint ("~> 0.6") when mob publishes. :mob_dev is test-only (the
+    # manifest tests run the real pre-publish validator) and never ships.
+    # :ash is a REAL runtime dep — it runs ON DEVICE in the host's BEAM (the
+    # first mob plugin with a heavyweight pure-Elixir runtime dependency).
+    [
+      {:mob, path: "../mob"},
+      {:ash, "~> 3.0"},
+      {:mob_dev, path: "../mob_dev", only: [:dev, :test], runtime: false},
+      # Code quality — Credo + ex_slop (AI-pattern checks) + jump_credo_checks,
+      # mirroring mob core's pre-commit gate.
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:ex_slop, "~> 0.4.2", only: [:dev, :test], runtime: false},
+      {:jump_credo_checks, "~> 0.1.0", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url},
+      files: ~w(lib priv mix.exs README* CHANGELOG*)
+    ]
+  end
+end
