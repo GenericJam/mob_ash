@@ -29,15 +29,14 @@ defmodule MobAsh.MixProject do
   defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
-    # Local :mob path dep while the plugin system is dogfooded; switch to the
-    # Hex constraint ("~> 0.6") when mob publishes. :mob_dev is test-only (the
-    # manifest tests run the real pre-publish validator) and never ships.
+    # :mob_dev is test-only (the manifest tests run the real pre-publish
+    # validator) and never ships.
     # :ash is a REAL runtime dep — it runs ON DEVICE in the host's BEAM (the
     # first mob plugin with a heavyweight pure-Elixir runtime dependency).
     [
-      {:mob, path: "../mob"},
+      {:mob, "~> 0.7"},
       {:ash, "~> 3.0"},
-      {:mob_dev, path: "../mob_dev", only: [:dev, :test], runtime: false},
+      {:mob_dev, "~> 0.6", only: [:dev, :test], runtime: false},
       # Code quality — Credo + ex_slop (AI-pattern checks) + jump_credo_checks,
       # mirroring mob core's pre-commit gate.
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
