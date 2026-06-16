@@ -10,6 +10,7 @@ defmodule MobAsh.MixProject do
       elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
+      aliases: aliases(),
       description:
         "Resource-driven Mob screens from Ash: declare Ash resources, get list/detail/create screens on device",
       package: package(),
@@ -27,6 +28,13 @@ defmodule MobAsh.MixProject do
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    # `mix setup` after cloning installs deps and activates the shared git
+    # hooks (.githooks): format / Credo --strict / compile run on every push
+    # and the full suite when mix.exs changes — the same gate CI enforces.
+    [setup: ["deps.get", "cmd git config core.hooksPath .githooks"]]
+  end
 
   defp deps do
     # :mob_dev is test-only (the manifest tests run the real pre-publish
