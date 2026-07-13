@@ -18,7 +18,10 @@ end
 
 defmodule MobAsh.Fixtures.Blog do
   @moduledoc "Test domain registering the fixture resource."
-  use Ash.Domain
+  # Test-only fixture domain — intentionally not in any `:ash_domains` config, so
+  # opt out of Ash's config-inclusion check (else it warns, and CI compiles the
+  # test env with --warnings-as-errors).
+  use Ash.Domain, validate_config_inclusion?: false
 
   resources do
     resource(MobAsh.Fixtures.Post)
