@@ -43,6 +43,9 @@ defmodule MobAsh.DetailScreen do
   @impl true
   def handle_event("delete", _p, socket) do
     :ok = Ash.destroy!(socket.assigns.record)
+    # Wake any live ListScreen for this resource so it re-reads before
+    # the pop-back paints. See MOB-56.
+    MobAsh.Refresh.broadcast(socket.assigns.resource)
     {:noreply, Mob.Socket.pop_screen(socket)}
   end
 

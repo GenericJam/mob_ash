@@ -49,6 +49,11 @@ defmodule MobAsh.ListScreen do
   end
 
   defp load(socket, resource) do
+    # Subscribe to :mob_ash_refresh broadcasts for this resource. Idempotent
+    # per pid, so re-entry on a manual reload doesn't stack registrations.
+    # See MOB-56.
+    :ok = MobAsh.Refresh.subscribe(resource)
+
     socket
     |> Mob.Socket.assign(:resource, resource)
     |> Mob.Socket.assign(:records, Ash.read!(resource))
