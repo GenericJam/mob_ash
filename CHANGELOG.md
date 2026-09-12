@@ -6,6 +6,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **List screens re-read after a create/delete in a child screen**
+  (MOB-56). `ListScreen`'s `handle_info(:mob_ash_refresh, ...)`
+  clause had been waiting for a message nothing was sending —
+  `FormScreen.handle_event("create")` and
+  `DetailScreen.handle_event("delete")` popped back on success but
+  never notified the list. Result: after a create or delete, the
+  list stayed stale until the screen was rebuilt from scratch
+  (usually by navigating away and back). New
+  `MobAsh.Refresh.subscribe/1` + `broadcast/1` route through a
+  `Registry` supervised by a new `MobAsh.Application`; `ListScreen`
+  subscribes on mount (pids auto-unregister when they die),
+  `FormScreen` / `DetailScreen` broadcast on the success path. Four
+  revert-verified tests cover the pubsub layer.
+
+---
+
 ## [0.1.1] - 2026-06-16
 
 ### Changed

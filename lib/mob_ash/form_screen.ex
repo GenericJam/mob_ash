@@ -43,6 +43,9 @@ defmodule MobAsh.FormScreen do
 
     case resource |> Ash.Changeset.for_create(:create, values) |> Ash.create() do
       {:ok, _record} ->
+        # Wake any live ListScreen for this resource so it re-reads before
+        # the pop-back paints. See MOB-56.
+        MobAsh.Refresh.broadcast(resource)
         {:noreply, Mob.Socket.pop_screen(socket)}
 
       {:error, err} ->
