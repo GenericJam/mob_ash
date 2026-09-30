@@ -81,7 +81,7 @@ defmodule MobAshTest do
       {:ok, socket} =
         MobAsh.ListScreen.mount(%{resource: Post}, %{}, new_socket(MobAsh.ListScreen))
 
-      assert length(socket.assigns.records) == 2
+      assert [_, _] = socket.assigns.records
 
       rendered = MobAsh.ListScreen.render(socket.assigns) |> inspect(limit: :infinity)
       assert rendered =~ "First post"
