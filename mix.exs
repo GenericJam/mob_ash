@@ -6,7 +6,7 @@ defmodule MobAsh.MixProject do
   def project do
     [
       app: :mob_ash,
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),

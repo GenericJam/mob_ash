@@ -70,5 +70,29 @@ defmodule MobAsh.RefreshTest do
       # Broadcast should still be :ok with no crash.
       assert :ok = MobAsh.Refresh.broadcast(DummyResource)
     end
+
+    test "subscribing twice delivers exactly one message per broadcast (MOB-296)" do
+      :ok = MobAsh.Refresh.subscribe(DummyResource)
+      :ok = MobAsh.Refresh.subscribe(DummyResource)
+      :ok = MobAsh.Refresh.broadcast(DummyResource)
+
+      assert_receive :mob_ash_refresh, 100
+      refute_receive :mob_ash_refresh, 50
+    end
+
+    test "repeated refresh cycles do not grow registrations (MOB-296)" do
+      # Mirrors ListScreen: subscribe in load/2, then re-subscribe on
+      # every :mob_ash_refresh.
+      :ok = MobAsh.Refresh.subscribe(DummyResource)
+
+      for _ <- 1..5 do
+        :ok = MobAsh.Refresh.broadcast(DummyResource)
+        assert_receive :mob_ash_refresh, 100
+        refute_receive :mob_ash_refresh, 20
+        :ok = MobAsh.Refresh.subscribe(DummyResource)
+      end
+
+      assert Registry.keys(MobAsh.Refresh, self()) == [DummyResource]
+    end
   end
 end

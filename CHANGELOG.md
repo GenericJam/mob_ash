@@ -6,7 +6,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ---
 
-## [Unreleased]
+## [0.1.2] - 2026-09-30
+
+### Changed
+
+- **Re-signed with plugin signature envelope v2** (MOB-287). The
+  package signature is now written by mob_dev 0.7.2's
+  `mix mob.plugin.sign`, so hosts verify it under the v2 envelope
+  rather than the temporary v1-transition acceptance; still signed
+  with the shared mob first-party key. mob_dev 0.7.0 / 0.7.1 can't
+  read v2 signatures and report this release as `invalid signature` —
+  upgrade the host app to `{:mob_dev, "~> 0.7.2", only: :dev, runtime: false}`.
+- **mob_ash now starts an OTP application** (MOB-56).
+  `MobAsh.Application` supervises the `MobAsh.Refresh` registry;
+  nothing is needed from the host beyond having mob_ash as a
+  dependency.
 
 ### Fixed
 
@@ -19,10 +33,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
   list stayed stale until the screen was rebuilt from scratch
   (usually by navigating away and back). New
   `MobAsh.Refresh.subscribe/1` + `broadcast/1` route through a
-  `Registry` supervised by a new `MobAsh.Application`; `ListScreen`
-  subscribes on mount (pids auto-unregister when they die),
-  `FormScreen` / `DetailScreen` broadcast on the success path. Four
-  revert-verified tests cover the pubsub layer.
+  `Registry` supervised by `MobAsh.Application`. `ListScreen`
+  subscribes in `load/2` (on mount and on every refresh);
+  `subscribe/1` registers a process at most once per resource
+  (MOB-296), so repeated loads don't multiply refresh messages.
+  Registrations are dropped only when the subscribing process exits. On
+  mob < 0.7.33 every screen shares one long-lived process, so after a list
+  is popped its refresh message is delivered to whichever screen is
+  current (a host screen overriding `handle_info/2` without a catch-all
+  would crash on it). `FormScreen` / `DetailScreen` broadcast on the
+  success path.
 
 ---
 

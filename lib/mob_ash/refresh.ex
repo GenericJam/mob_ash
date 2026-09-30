@@ -13,15 +13,20 @@ defmodule MobAsh.Refresh do
 
   @doc """
   Subscribe the calling process to refresh events for `resource`.
-  Pids auto-unregister when they die, so `ListScreen`s don't need to
-  clean up explicitly. Safe to call multiple times — a duplicate
-  registration is a no-op at the Registry level.
+
+  Idempotent: the Registry uses `keys: :duplicate`, so this checks the
+  caller's existing keys and registers only once per resource.
+  `ListScreen.load/2` calls it on mount and on every refresh, so without
+  the check each broadcast would double the caller's registrations
+  (MOB-296). Entries are dropped when the subscribing process exits.
   """
   @spec subscribe(module()) :: :ok
   def subscribe(resource) when is_atom(resource) do
-    case Registry.register(@registry, resource, nil) do
-      {:ok, _pid} -> :ok
-      {:error, {:already_registered, _pid}} -> :ok
+    if resource in Registry.keys(@registry, self()) do
+      :ok
+    else
+      {:ok, _owner} = Registry.register(@registry, resource, nil)
+      :ok
     end
   end
 
