@@ -1,6 +1,6 @@
-# AGENTS.md — orientation for AI agents working on mob_ash
+# mob_ash — Agent Instructions
 
-You're in **mob_ash**, the framework-integration plugin that turns declared Ash resources into on-device Mob screens. Register your Ash domains in the host, and mob_ash generates a list / detail / create screen set per resource at build time. Ash itself runs **on-device** in the host BEAM — this is the first mob plugin with a heavyweight pure-Elixir runtime dependency (`:ash ~> 3.0`).
+You're in **mob_ash**, the framework-integration plugin that turns declared Ash resources into on-device Mob screens. Register your Ash domains in the host, and mob_ash generates a list / detail / create screen set per resource at build time. Ash itself runs **on-device** in the host BEAM — this is the first mob plugin with a heavyweight pure-Elixir runtime dependency (`:ash ~> 3.0`). It's a NET-NEW Mob plugin (not a core extraction): the spec-v2 generated-screens lane with Ash as the resource layer.
 
 **Also read [`~/code/mob/AGENTS.md`](../mob/AGENTS.md)** and **`~/code/mob/MOB_PLUGINS.md`** for the plugin manifest schema, spec-v2 (code-generated plugins), `Mob.Nav.Registry`, and the mob-dev host-config audit that gates what a plugin can read. This file is mob_ash-specific.
 
@@ -59,17 +59,48 @@ Device test = install into a Mob host, declare a real Ash domain in `config :my_
 4. **`Ash.Domain.Info.resources/1` is the introspection contract.** Cache it in the generator if you must, but if Ash changes shape at a major version, this plugin re-verifies before bumping.
 5. **The generator runs inside the host's Mix context.** Do not hard-code `:mob_ash` as `Mix.Project.config()[:app]` inside the generator — the host is the current project at that call site. A copy-paste from a prototype that hardcodes the host app name is a real footgun; check `generator.ex`'s comment for context.
 
-## Pre-commit + release
+## Pre-commit checklist
 
-Standard mob gate (pure Elixir — no zig / clang-format):
+Standard mob gate (pure Elixir — no zig / clang-format). Before committing, run all in this order:
 
 ```bash
 mix format
-mix credo --strict
+mix credo --strict                  # includes ExSlop + jump_credo_checks
 mix compile --warnings-as-errors
 mix test
 ```
 
-Activate the pre-push hook once per clone: `git config core.hooksPath .githooks`. Pre-push runs format / credo strict / compile on every push and the full suite when `mix.exs` changes.
+Pre-push hook (`.githooks/pre-push`) runs format / credo strict / compile on every push and the full suite when `mix.exs` changes. Activate once per clone:
 
-Release = `mix.exs` `@version` bump on master. GH Actions handles tag + GitHub release + Hex publish, signed with the shared mob first-party key. Do NOT bump without explicit permission.
+```bash
+git config core.hooksPath .githooks
+```
+
+Pure Elixir — no native code. The generator + shared screens are entirely hot-pushable. Device verification is still worth doing for anything non-trivial (see the device test under Testing; data layer Ets or AshSqlite over the bundled SQLite).
+
+### Tests are part of the change
+
+New behaviour ships with a test unless the change is small enough that a test would only restate it. For mob_ash specifically:
+
+* Changes to `MobAsh.Generator.entries/1` or `MobAsh.Info` = a unit test using `test/support/fixtures.ex`. These are pure functions, no host needed.
+* Changes to the manifest's `:host_config_keys` = an audit-level test, plus check the mob_dev side agrees.
+* Changes to the three screen modules = a mount test that pins the `params.resource` contract.
+
+### Adversarial review — before every non-trivial commit
+
+Spawn a subagent, point it at the diff. Especially:
+
+* **Host-config audit escapes.** Any key read from the host at build time must be declared in `:host_config_keys`. A subagent's job is to find the read that isn't.
+* **Per-resource forking.** The three screens are shared parameterized modules; the resource module travels as `params.resource`. Do not fork per-resource modules — that defeats spec-v2's whole point.
+* **Ash surface drift.** `Ash.Domain.Info.resources/1` and `Ash.Resource.Info.public_attributes/1` are the introspection contract. If a diff bumps `:ash`, review whether either has shifted.
+* **`apply/3` into mob_dev.** Deliberate — mob_ash must not compile-depend on mob_dev. A cleanup to a direct call is a real regression.
+
+Skip only for: formatting, a typo, a version bump, a changelog edit.
+
+## Release flow
+
+Canonical process in [`~/code/mob/RELEASE.md`](../mob/RELEASE.md). mob_ash specifics:
+
+* `@version` in `mix.exs` is the trigger. Push to master, GH Actions handles tag / GitHub release / Hex publish, signed with the shared mob first-party key. Do NOT bump without explicit permission.
+* Hot-pushable, no native rebuild needed — but the generator runs at build time, so the release preflight (`mix.exs`-triggered full test run) is where regressions get caught.
+* Do NOT bump `:ash` across a major version without re-verifying the two Ash.*.Info calls the plugin depends on.
