@@ -1,7 +1,9 @@
 defmodule MobAshTest do
   use ExUnit.Case, async: false
 
+  alias Mob.Plugin.SelfTest, as: Contract
   alias MobAsh.Fixtures.{Blog, Post}
+  alias MobAsh.SelfTest
   alias MobDev.Plugin.{Manifest, Validator}
 
   @plugin_dir Path.expand("..", __DIR__)
@@ -28,6 +30,12 @@ defmodule MobAshTest do
       refute Map.has_key?(m, :nifs)
       refute Map.has_key?(m, :android)
       refute Map.has_key?(m, :ios)
+    end
+
+    test "declares the self-test, which passes the validator without a warning", %{manifest: m} do
+      assert m.selftest == MobAsh.SelfTest
+      assert %{errors: [], warnings: warnings} = Validator.validate_plugin(m, @plugin_dir)
+      refute Enum.any?(warnings, &(&1 =~ "selftest"))
     end
   end
 
@@ -142,6 +150,44 @@ defmodule MobAshTest do
 
       {:noreply, _} = MobAsh.DetailScreen.handle_event("delete", %{}, socket)
       assert Ash.read!(Post) == []
+    end
+  end
+
+  describe "MobAsh.SelfTest" do
+    test "passes on a running mob_ash: the list, form and detail screens round-trip a record" do
+      result = SelfTest.run(%{platform: :android, device: :emulator})
+      assert result == :pass
+      assert Contract.result?(result)
+      # It cleaned up after itself, and never touched the host's resources.
+      assert Ash.read!(MobAsh.SelfTest.Note) == []
+      assert Ash.read!(Post) == []
+      # Both refreshes were consumed by the test, none left behind.
+      refute_received :mob_ash_refresh
+    end
+
+    test "a create FormScreen reports as an error fails, quoting it" do
+      result = SelfTest.exercise(MobAsh.SelfTest.Note, nil, :ios)
+      assert {:fail, reason} = result
+      assert reason =~ "FormScreen's Create on MobAsh.SelfTest.Note reported:"
+      assert reason =~ "title"
+      assert Contract.result?(result)
+    end
+
+    test "a list that does not start empty fails before creating anything" do
+      seed!(title: "already here")
+      result = SelfTest.exercise(Post, "self-test", :android)
+      assert {:fail, "ListScreen mounted with 1 records, expected none"} = result
+      assert Contract.result?(result)
+      assert [%{title: "already here"}] = Ash.read!(Post)
+    end
+
+    test "without the mob_ash application (no MobAsh.Refresh registry) it fails" do
+      :ok = Application.stop(:mob_ash)
+      on_exit(fn -> {:ok, _} = Application.ensure_all_started(:mob_ash) end)
+
+      result = SelfTest.run(%{platform: :ios, device: :simulator})
+      assert {:fail, "the MobAsh.Refresh registry is not running" <> _} = result
+      assert Contract.result?(result)
     end
   end
 

@@ -6,6 +6,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ---
 
+## [Unreleased]
+
+### Added
+- **On-device self-test** (MOB-418). `MobAsh.SelfTest` implements
+  `Mob.Plugin.SelfTest` and is declared in the manifest as `selftest:`. It
+  drives the plugin's three shared screens through their real callbacks in
+  the device's BEAM, against a resource it ships for the purpose
+  (`MobAsh.SelfTest.Note`, private ETS): `ListScreen.mount/3` (subscribes,
+  lists nothing), `FormScreen` typing a title and Create (no error; its
+  broadcast must reach the list as `:mob_ash_refresh`), the list re-reading
+  exactly that record and rendering its `Info.row_label/2` row, then
+  `DetailScreen.mount/3` by id and Delete (its broadcast must reach the list,
+  which re-reads empty). Fails if `MobAsh.Application` (the `MobAsh.Refresh`
+  registry) is not running. It never touches the host's own `:ash_domains`.
+  Run it with `mix mob.selftest` from a host app (mob_dev 0.7.17). Requires
+  mob 0.9.15; `mob_version` in the manifest is now `~> 0.9` (was `~> 0.6`).
+
 ## [0.1.2] - 2026-09-30
 
 ### Changed
