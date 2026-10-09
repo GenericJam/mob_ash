@@ -1,6 +1,6 @@
 %{
   name: :mob_ash,
-  mob_version: "~> 0.6",
+  mob_version: "~> 0.9",
   # Spec v2: contributions are GENERATED from the host's configuration at
   # build time — the lane this plugin exists to exercise (MOB_PLUGINS.md
   # "Code-generated plugins"). Ash was the motivating example for v2; this is

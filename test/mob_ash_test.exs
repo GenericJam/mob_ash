@@ -154,28 +154,31 @@ defmodule MobAshTest do
   end
 
   describe "MobAsh.SelfTest" do
-    test "passes on a running mob_ash: create, refresh, read, get and destroy all answer" do
+    test "passes on a running mob_ash: the list, form and detail screens round-trip a record" do
       result = SelfTest.run(%{platform: :android, device: :emulator})
       assert result == :pass
       assert Contract.result?(result)
       # It cleaned up after itself, and never touched the host's resources.
       assert Ash.read!(MobAsh.SelfTest.Note) == []
       assert Ash.read!(Post) == []
+      # Both refreshes were consumed by the test, none left behind.
+      refute_received :mob_ash_refresh
     end
 
-    test "a create the resource refuses fails, quoting Ash's error" do
-      result = SelfTest.exercise(MobAsh.SelfTest.Note, %{})
+    test "a create FormScreen reports as an error fails, quoting it" do
+      result = SelfTest.exercise(MobAsh.SelfTest.Note, nil, :ios)
       assert {:fail, reason} = result
-      assert reason =~ "Ash.create/1 on MobAsh.SelfTest.Note failed"
+      assert reason =~ "FormScreen's Create on MobAsh.SelfTest.Note reported:"
       assert reason =~ "title"
       assert Contract.result?(result)
     end
 
-    test "a read that returns records other than the one created fails" do
+    test "a list that does not start empty fails before creating anything" do
       seed!(title: "already here")
-      result = SelfTest.exercise(Post, %{title: "self-test"})
-      assert {:fail, "Ash.read/1 returned 2 records" <> _} = result
+      result = SelfTest.exercise(Post, "self-test", :android)
+      assert {:fail, "ListScreen mounted with 1 records, expected none"} = result
       assert Contract.result?(result)
+      assert [%{title: "already here"}] = Ash.read!(Post)
     end
 
     test "without the mob_ash application (no MobAsh.Refresh registry) it fails" do
