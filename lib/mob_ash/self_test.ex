@@ -9,7 +9,8 @@ defmodule MobAsh.SelfTest do
   (`MobAsh.SelfTest.Note`, a private ETS table owned by the test process):
 
     1. `MobAsh.Refresh`, the registry the plugin's application starts, must
-       be running; without it every screen crashes on mount.
+       be running; without it `ListScreen` crashes on mount and the form
+       and detail screens crash when they broadcast.
     2. `MobAsh.ListScreen.mount/3` subscribes to refreshes and lists no
        records.
     3. `MobAsh.FormScreen`: `mount/3`, a title typed through its
