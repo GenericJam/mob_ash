@@ -6,7 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ---
 
-## [Unreleased]
+## [0.1.3] - 2026-10-09
 
 ### Added
 - **On-device self-test** (MOB-418). `MobAsh.SelfTest` implements
@@ -20,8 +20,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
   `DetailScreen.mount/3` by id and Delete (its broadcast must reach the list,
   which re-reads empty). Fails if `MobAsh.Application` (the `MobAsh.Refresh`
   registry) is not running. It never touches the host's own `:ash_domains`.
-  Run it with `mix mob.selftest` from a host app (mob_dev 0.7.17). Requires
-  mob 0.9.15; `mob_version` in the manifest is now `~> 0.9` (was `~> 0.6`).
+  Run it with `mix mob.selftest` from a host app (mob_dev 0.7.17).
+
+### Changed
+- Requires mob >= 0.9.15 (was `~> 0.7`), for `Mob.Plugin.SelfTest`: hosts on
+  mob 0.7.x/0.8.x must upgrade mob first. `mob_version` in the manifest is now
+  `~> 0.9` (was `~> 0.6`).
 
 ## [0.1.2] - 2026-09-30
 
