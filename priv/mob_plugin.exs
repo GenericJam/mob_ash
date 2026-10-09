@@ -14,7 +14,11 @@
   # pointing at mob_ash's shared parameterized screens with the resource module
   # carried as ROUTE-BOUND params (Mob.Nav.Registry.register/3).
   screens_generator: {MobAsh.Generator, :generate, []},
-  host_config_keys: [:ash_domains]
+  host_config_keys: [:ash_domains],
+  # On-device proof for `mix mob.selftest` / mob_ci: create / refresh / read /
+  # get / destroy through the plugin's API path on a private ETS resource it
+  # ships for the purpose (Mob.Plugin.SelfTest).
+  selftest: MobAsh.SelfTest
   # Pure Elixir end to end: no nifs / android / ios sections — every screen is
   # hot-pushable, and Ash itself runs on-device in the host BEAM.
 }

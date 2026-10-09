@@ -45,9 +45,9 @@ defmodule MobAsh.MixProject do
     # :ash is a REAL runtime dep — it runs ON DEVICE in the host's BEAM (the
     # first mob plugin with a heavyweight pure-Elixir runtime dependency).
     [
-      {:mob, "~> 0.7"},
+      {:mob, "~> 0.9 and >= 0.9.15"},
       {:ash, "~> 3.0"},
-      {:mob_dev, "~> 0.6", only: [:dev, :test], runtime: false},
+      {:mob_dev, "~> 0.7.17", only: [:dev, :test], runtime: false},
       # Code quality — Credo + ex_slop (AI-pattern checks) + jump_credo_checks,
       # mirroring mob core's pre-commit gate.
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},

@@ -28,6 +28,8 @@ Pure Elixir (spec-v2 generated plugin, no native code): every screen is
 hot-pushable. Use a device-friendly Ash data layer (`Ash.DataLayer.Ets`, or
 AshSqlite over the bundled SQLite).
 
+`mix mob.selftest` runs `MobAsh.SelfTest` on the device: create, refresh, read, get and destroy through the plugin's API path on a private ETS resource it ships for the purpose.
+
 ## Development
 
 Clone, then run once:
